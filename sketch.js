@@ -13,10 +13,13 @@ let heartFillAlpha = 0;
 
 let yayHearts = [];
 let giftOpened = false;
-let roseY = 0;
-let roseEmojiSize = 0;
-let roseTargetY = 0;
+
+let mainRoseY = 0;
+let mainRoseSize = 0;
+let mainRoseTargetY = 0;
 let giftBox = { x: 0, y: 0, w: 80, h: 60, lidY: 0, burst: 0 };
+
+let giftFlowers = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -184,7 +187,7 @@ function drawButtons() {
     stroke(255, noBox.opacity);
     strokeWeight(2);
     rectMode(CENTER);
-    rect(0, 0, noBox.w, noBox.h, 8);
+    rect(0, 0, noBox.w, noBox.h);
     noStroke();
     fill(255, noBox.opacity);
     textSize(12);
@@ -209,11 +212,35 @@ function mousePressed() {
           speed: random(0.5, 1)
         });
       }
+
       giftBox.x = width / 2 - 40;
       giftBox.y = height / 2 + 150;
-      roseY = giftBox.y;
-      roseEmojiSize = 0;
-      roseTargetY = height / 2 - 50; // rose stays above YAY text
+      mainRoseY = giftBox.y;
+      mainRoseSize = 0;
+      mainRoseTargetY = height / 2 - 50;
+
+      // 5 small roses
+      for (let i = 0; i < 5; i++) {
+        giftFlowers.push({
+          emoji: "🌹",
+          xOffset: random(-width / 2, width / 2),
+          y: giftBox.y,
+          targetY: random(height / 4, height - 100),
+          size: 0
+        });
+      }
+
+      // 3 bouquets
+      let bouquetEmojis = ["🌸", "🌺", "💐"];
+      for (let i = 0; i < 3; i++) {
+        giftFlowers.push({
+          emoji: bouquetEmojis[i],
+          xOffset: random(-width / 2, width / 2),
+          y: giftBox.y,
+          targetY: random(height / 4, height - 100),
+          size: 0
+        });
+      }
     }
 
     if (
@@ -261,40 +288,42 @@ function drawCreativeYay() {
 }
 
 function drawGiftWithRose() {
-  // gift box
   push();
   translate(giftBox.x + giftBox.w / 2, giftBox.y + giftBox.h / 2);
-
-  // lid
   push();
   rotate(-PI / 4 * giftBox.burst);
   fill(255, 0, 150);
   rect(0, -giftBox.h / 2, giftBox.w, giftBox.h / 4);
   pop();
-
-  // box body
   fill(255, 0, 150);
   rect(0, 0, giftBox.w, giftBox.h);
   pop();
 
-  // rose rising to target position
   if (giftOpened) {
-    roseY = lerp(roseY, roseTargetY, 0.05);
-    roseEmojiSize = lerp(roseEmojiSize, 50, 0.05);
-    textSize(roseEmojiSize);
-    text("🌹", giftBox.x + giftBox.w / 2, roseY);
+    mainRoseY = lerp(mainRoseY, mainRoseTargetY, 0.05);
+    mainRoseSize = lerp(mainRoseSize, 60, 0.05);
+    textSize(mainRoseSize);
+    text("🌹", giftBox.x + giftBox.w / 2, mainRoseY);
 
-    // sparkles
-    for (let i = 0; i < 3; i++) {
-      let px = giftBox.x + giftBox.w / 2 + random(-15, 15);
-      let py = roseY + random(-15, 15);
-      stroke(255, 255, random(150, 255));
+    // Extra sparkles around main rose
+    for (let i = 0; i < 20; i++) {
+      let angle = frameCount * 0.05 + i;
+      let r = 50 + 10 * sin(frameCount * 0.1 + i);
+      let sx = giftBox.x + giftBox.w / 2 + cos(angle) * r;
+      let sy = mainRoseY + sin(angle) * r;
+      stroke(255, random(150, 255), random(150, 255));
       strokeWeight(2);
-      point(px, py);
+      point(sx, sy);
+    }
+
+    for (let f of giftFlowers) {
+      f.y = lerp(f.y, f.targetY, 0.05);
+      f.size = lerp(f.size, 40, 0.05);
+      textSize(f.size);
+      text(f.emoji, giftBox.x + giftBox.w / 2 + f.xOffset, f.y);
     }
   }
 
-  // arrow + text
   fill(255);
   textFont('Felix Titling');
   textSize(20);
@@ -305,3 +334,4 @@ function drawGiftWithRose() {
   line(giftBox.x + giftBox.w / 2, giftBox.y - 30, giftBox.x + giftBox.w / 2 - 5, giftBox.y - 25);
   line(giftBox.x + giftBox.w / 2, giftBox.y - 30, giftBox.x + giftBox.w / 2 + 5, giftBox.y - 25);
 }
+
